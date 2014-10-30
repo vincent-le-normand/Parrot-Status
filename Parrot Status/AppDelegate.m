@@ -38,7 +38,6 @@ typedef NS_ENUM(NSInteger, PSState) {
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-	// Insert code here to initialize your application
 	statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
 	[self updateImage];
 	statusItem.highlightMode = YES;
@@ -101,14 +100,14 @@ typedef NS_ENUM(NSInteger, PSState) {
 - (void)menuNeedsUpdate:(NSMenu*)menu {
 	[menu removeAllItems];
 	if( state == PSAskingStateConnected) {
-		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Conencted to %@", @""),name] action:@selector(test) keyEquivalent:@""];
+		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Connected to %@", @""),name] action:@selector(test) keyEquivalent:@""];
 		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Version %@", @""),version] action:@selector(test) keyEquivalent:@""];
 		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Battery level: %i%% %@", @""),batteryLevel,(batteryCharging?NSLocalizedString(@"- charging", @""):@"")] action:@selector(test) keyEquivalent:@""];
 		[menu addItem:[NSMenuItem separatorItem]];
-		[[menu addItemWithTitle:NSLocalizedString(@"Noise Cancellation", @"") action:@selector(toogleNoiseCancellation:) keyEquivalent:@""] setState:noiseCancel?NSOnState:NSOffState];
-		[[menu addItemWithTitle:NSLocalizedString(@"Auto connection", @"") action:@selector(toogleAutoConnect:) keyEquivalent:@""] setState:autoConnection?NSOnState:NSOffState];
-		[[menu addItemWithTitle:NSLocalizedString(@"Lou Reed Mode", @"") action:@selector(toogleLouReed:) keyEquivalent:@""] setState:louReedMode?NSOnState:NSOffState];
-		[[menu addItemWithTitle:NSLocalizedString(@"Concert Hall Mode", @"") action:@selector(toogleConcertHall:) keyEquivalent:@""] setState:concertHall?NSOnState:NSOffState];
+		[[menu addItemWithTitle:NSLocalizedString(@"Noise cancellation", @"") action:@selector(toggleNoiseCancellation:) keyEquivalent:@""] setState:noiseCancel?NSOnState:NSOffState];
+		[[menu addItemWithTitle:NSLocalizedString(@"Auto connection", @"") action:@selector(toggleAutoConnect:) keyEquivalent:@""] setState:autoConnection?NSOnState:NSOffState];
+		[[menu addItemWithTitle:NSLocalizedString(@"Lou Reed mode", @"") action:@selector(toggleLouReed:) keyEquivalent:@""] setState:louReedMode?NSOnState:NSOffState];
+		[[menu addItemWithTitle:NSLocalizedString(@"Concert hall mode", @"") action:@selector(toggleConcertHall:) keyEquivalent:@""] setState:concertHall?NSOnState:NSOffState];
 	}
 	else {
 		[menu addItemWithTitle:NSLocalizedString(@"Not connected",@"") action:@selector(test) keyEquivalent:@""];
@@ -146,7 +145,7 @@ static NSArray * uuidServices = nil;
 				IOBluetoothRFCOMMChannel * rfCommChannel;
 				res = [device openRFCOMMChannelSync:&rfCommChannel withChannelID:channelId delegate:self];
 				mRfCommChannel = rfCommChannel;
-				NSAssert(res == kIOReturnSuccess, @"Failed to open chanel");
+				NSAssert(res == kIOReturnSuccess, @"Failed to open channel");
 				unsigned char buffer[] = {0x00,0x03,0x00};
 				state = PSAskingStateInit;
 				res = [rfCommChannel writeSync:buffer length:3];
@@ -284,27 +283,27 @@ static NSArray * uuidServices = nil;
 //}
 
 #pragma mark Actions
-- (IBAction)toogleNoiseCancellation:(id)sender {
+- (IBAction)toggleNoiseCancellation:(id)sender {
 	[self sendRequest:[NSString stringWithFormat:@"SET /api/audio/noise_cancellation/enabled/set?arg=%@",noiseCancel?@"false":@"true"]];
 	[self sendRequest:@"GET /api/audio/noise_cancellation/enabled/get"];
 }
 
-- (IBAction)toogleAutoConnect:(id)sender {
+- (IBAction)toggleAutoConnect:(id)sender {
 	[self sendRequest:[NSString stringWithFormat:@"SET /api/system/auto_connection/enabled/set?arg=%@",autoConnection?@"false":@"true"]];
 	[self sendRequest:@"GET /api/system/auto_connection/enabled/get"];
 }
 
-- (IBAction)toogleLouReed:(id)sender {
+- (IBAction)toggleLouReed:(id)sender {
 	if(!louReedMode && concertHall) {
-		[self toogleConcertHall:sender];
+		[self toggleConcertHall:sender];
 	}
 	[self sendRequest:[NSString stringWithFormat:@"SET /api/audio/specific_mode/enabled/set?arg=%@",louReedMode?@"false":@"true"]];
 	[self sendRequest:@"GET /api/audio/specific_mode/enabled/get"];
 }
 
-- (IBAction)toogleConcertHall:(id)sender {
+- (IBAction)toggleConcertHall:(id)sender {
 	if(louReedMode && !concertHall) {
-		[self toogleLouReed:sender];
+		[self toggleLouReed:sender];
 	}
 	[self sendRequest:[NSString stringWithFormat:@"SET /api/audio/sound_effect/enabled/set?arg=%@",concertHall?@"false":@"true"]];
 	[self sendRequest:@"GET /api/audio/sound_effect/enabled/get"];
