@@ -12,6 +12,7 @@
 		BF2F69FB1A013C0000462846 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BF2F69FA1A013C0000462846 /* Images.xcassets */; };
 		BF2F69FE1A013C0000462846 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = BF2F69FC1A013C0000462846 /* MainMenu.xib */; };
 		BF2F6A0A1A013C0000462846 /* Parrot_StatusTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF2F6A091A013C0000462846 /* Parrot_StatusTests.m */; };
+		BF2F6A181A014F3000462846 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF2F6A171A014F3000462846 /* IOBluetooth.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +36,7 @@
 		BF2F6A031A013C0000462846 /* Parrot StatusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Parrot StatusTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF2F6A081A013C0000462846 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BF2F6A091A013C0000462846 /* Parrot_StatusTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Parrot_StatusTests.m; sourceTree = "<group>"; };
+		BF2F6A171A014F3000462846 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF2F6A181A014F3000462846 /* IOBluetooth.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +84,7 @@
 				BF2F69FA1A013C0000462846 /* Images.xcassets */,
 				BF2F69FC1A013C0000462846 /* MainMenu.xib */,
 				BF2F69F31A013C0000462846 /* Supporting Files */,
+				BF2F6A171A014F3000462846 /* IOBluetooth.framework */,
 			);
 			path = "Parrot Status";
 			sourceTree = "<group>";
