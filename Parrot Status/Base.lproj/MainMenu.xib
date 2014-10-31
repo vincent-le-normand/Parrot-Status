@@ -13,6 +13,7 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate">
             <connections>
+                <outlet property="advancedBatteryWindow" destination="xqS-Cp-Alt" id="Fc9-t9-abm"/>
                 <outlet property="updater" destination="wBC-Gz-srE" id="Eoi-ul-Sza"/>
             </connections>
         </customObject>
@@ -667,5 +668,65 @@
                 </menuItem>
             </items>
         </menu>
+        <window title="Battery Notifications" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="xqS-Cp-Alt">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+            <rect key="contentRect" x="0.0" y="0.0" width="514" height="82"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1200"/>
+            <view key="contentView" id="n8y-Al-fHT">
+                <rect key="frame" x="0.0" y="0.0" width="514" height="82"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <button translatesAutoresizingMaskIntoConstraints="NO" id="Zcc-Fq-ew4">
+                        <rect key="frame" x="18" y="46" width="257" height="18"/>
+                        <buttonCell key="cell" type="check" title="Notify when battery level drops under:" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="iPZ-Ib-eak">
+                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <binding destination="gAU-k9-yAI" name="value" keyPath="values.ShowBatteryNotifications" id="Lvh-KG-TK2"/>
+                        </connections>
+                    </button>
+                    <tokenField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="keV-BR-FoI">
+                        <rect key="frame" x="281" y="45" width="213" height="22"/>
+                        <tokenFieldCell key="cell" selectable="YES" editable="YES" borderStyle="bezel" alignment="left" drawsBackground="YES" allowsEditingTextAttributes="YES" id="s9W-7x-Czk">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </tokenFieldCell>
+                        <connections>
+                            <binding destination="gAU-k9-yAI" name="value" keyPath="values.BatteryNotificationLevels" id="U8X-Yd-meZ">
+                                <dictionary key="options">
+                                    <bool key="NSContinuouslyUpdatesValue" value="YES"/>
+                                </dictionary>
+                            </binding>
+                            <outlet property="delegate" destination="Voe-Tx-rLC" id="gDg-VH-1VM"/>
+                        </connections>
+                    </tokenField>
+                    <button translatesAutoresizingMaskIntoConstraints="NO" id="U3Q-sr-OIK">
+                        <rect key="frame" x="40" y="18" width="235" height="18"/>
+                        <buttonCell key="cell" type="check" title="Notify when battery is about to die" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="x9u-ny-eUU">
+                            <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                            <font key="font" metaFont="system"/>
+                        </buttonCell>
+                        <connections>
+                            <binding destination="gAU-k9-yAI" name="enabled" keyPath="values.ShowBatteryNotifications" id="xa2-Je-d1b"/>
+                            <binding destination="gAU-k9-yAI" name="value" keyPath="values.ShowBatteryAboutToDieNotifications" id="uMZ-8J-TgC"/>
+                        </connections>
+                    </button>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="U3Q-sr-OIK" firstAttribute="leading" secondItem="n8y-Al-fHT" secondAttribute="leading" constant="42" id="4eS-2e-cX2"/>
+                    <constraint firstItem="U3Q-sr-OIK" firstAttribute="top" secondItem="Zcc-Fq-ew4" secondAttribute="bottom" constant="14" id="64y-aG-HD0"/>
+                    <constraint firstAttribute="trailing" secondItem="keV-BR-FoI" secondAttribute="trailing" constant="20" id="AA0-Qs-yac"/>
+                    <constraint firstItem="Zcc-Fq-ew4" firstAttribute="leading" secondItem="n8y-Al-fHT" secondAttribute="leading" constant="20" id="PhD-1h-wcu"/>
+                    <constraint firstItem="Zcc-Fq-ew4" firstAttribute="baseline" secondItem="keV-BR-FoI" secondAttribute="baseline" id="Upp-v8-Pzs"/>
+                    <constraint firstItem="Zcc-Fq-ew4" firstAttribute="top" secondItem="n8y-Al-fHT" secondAttribute="top" constant="20" id="Y0c-ex-J6U"/>
+                    <constraint firstItem="keV-BR-FoI" firstAttribute="leading" secondItem="Zcc-Fq-ew4" secondAttribute="trailing" constant="8" id="pNz-Hr-vdL"/>
+                    <constraint firstAttribute="bottom" secondItem="U3Q-sr-OIK" secondAttribute="bottom" constant="20" id="t0F-wo-ceT"/>
+                </constraints>
+            </view>
+            <point key="canvasLocation" x="304" y="153"/>
+        </window>
+        <userDefaultsController representsSharedInstance="YES" id="gAU-k9-yAI"/>
     </objects>
 </document>

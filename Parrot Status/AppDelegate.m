@@ -17,7 +17,7 @@ typedef NS_ENUM(NSInteger, PSState) {
 };
 
 @interface AppDelegate ()
-
+@property (weak) IBOutlet NSWindow *advancedBatteryWindow;
 @property (weak) IBOutlet SUUpdater *updater;
 @end
 
@@ -47,7 +47,9 @@ typedef NS_ENUM(NSInteger, PSState) {
 
 + (void) initialize {
 	[[NSUserDefaults standardUserDefaults] registerDefaults:@{
-															  @"ShowBatteryNotifications":@YES
+															  @"ShowBatteryNotifications":@YES,
+															  @"ShowBatteryAboutToDieNotifications":@YES,
+															  @"BatteryNotificationLevels":@[@"20%",@"10%"]
 															  }];
 }
 
@@ -66,7 +68,6 @@ typedef NS_ENUM(NSInteger, PSState) {
 	statusItem.highlightMode = YES;
 	NSMenu * myMenu = [[NSMenu alloc] initWithTitle:@"Test"];
 	myMenu.delegate = self;
-//	[myMenu addItemWithTitle:@"test" action:NULL keyEquivalent:@""];
 	statusItem.menu = myMenu;
 	
 	[IOBluetoothDevice registerForConnectNotifications:self selector:@selector(connected:fromDevice:)];
@@ -145,7 +146,13 @@ typedef NS_ENUM(NSInteger, PSState) {
 	else {
 		[menu addItemWithTitle:NSLocalizedString(@"Not connected",@"") action:@selector(test) keyEquivalent:@""];
 	}
-	[[menu addItemWithTitle:NSLocalizedString(@"Battery notifications", @"") action:@selector(toogleBatteryNotifications:) keyEquivalent:@""] setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryNotifications"]?NSOnState:NSOffState];
+	if([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) {
+		[menu addItemWithTitle:NSLocalizedString(@"Battery notifications…", @"") action:@selector(showAdvancedBatteryOptions:) keyEquivalent:@""];
+	}
+	else {
+		[[menu addItemWithTitle:NSLocalizedString(@"Battery notifications", @"") action:@selector(toogleBatteryNotifications:) keyEquivalent:@""] setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryNotifications"]?NSOnState:NSOffState];
+	}
+	
 	[menu addItem:[NSMenuItem separatorItem]];
 	if([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) {
 		NSMenuItem * checkForUpdates = [menu addItemWithTitle:NSLocalizedString(@"Check For Updates…", @"") action:@selector(about:) keyEquivalent:@""];
@@ -183,7 +190,7 @@ static NSArray * uuidServices = nil;
 				NSLog(@"Failed to connect to %@", device.nameOrAddress);
 			}
 			else {
-				NSLog(@"Connected %@", device.nameOrAddress);
+				NSLog(@"Connected to %@", device.nameOrAddress);
 				IOBluetoothRFCOMMChannel * rfCommChannel;
 				res = [device openRFCOMMChannelSync:&rfCommChannel withChannelID:channelId delegate:self];
 				mRfCommChannel = rfCommChannel;
@@ -239,19 +246,25 @@ static NSArray * uuidServices = nil;
 		
 		if([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryNotifications"] && batteryCharging == NO) {
 			NSUserNotification * userNotification = nil;
-			if(batteryLevel>=20 && newBatteryLevel<20) {
-				userNotification = [[NSUserNotification alloc] init];
-				userNotification.title = NSLocalizedString(@"Parrot Zik Batteries Low", @"");
-				userNotification.subtitle = NSLocalizedString(@"20% of battery remaining", @"");
+			NSArray * notificationLevels = [[NSUserDefaults standardUserDefaults] arrayForKey:@"BatteryNotificationLevels"];
+			NSMutableArray * sortedNotificationLevels = [NSMutableArray array];
+			for (NSString * currentLevel in notificationLevels) {
+				[sortedNotificationLevels addObject:@([currentLevel intValue])];
 			}
-			else if(batteryLevel>=10 && newBatteryLevel<10) {
-				userNotification = [[NSUserNotification alloc] init];
-				userNotification.title = NSLocalizedString(@"Parrot Zik Batteries Low", @"");
-				userNotification.subtitle = NSLocalizedString(@"10% of battery remaining", @"");
+			[sortedNotificationLevels sortUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+				return [obj2 compare:obj1];
+			}];
+			for (NSString * currentLevel in sortedNotificationLevels) {
+				if(batteryLevel > [currentLevel intValue] && newBatteryLevel <= [currentLevel intValue] ) {
+					userNotification = [[NSUserNotification alloc] init];
+					userNotification.title = NSLocalizedString(@"Parrot Zik Battery Notification", @"");
+					userNotification.subtitle = [NSString stringWithFormat:NSLocalizedString(@"%i%% of battery remaining", @""),[currentLevel intValue]];
+					break;
+				}
 			}
-			else if(batteryLevel>=2 && newBatteryLevel<2) {
+			if(!userNotification && [[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryAboutToDieNotifications"] && batteryLevel>=2 && newBatteryLevel<2) {
 				userNotification = [[NSUserNotification alloc] init];
-				userNotification.title = NSLocalizedString(@"Parrot Zik Batteries Low", @"");
+				userNotification.title = NSLocalizedString(@"Parrot Zik Battery Low", @"");
 				userNotification.subtitle = NSLocalizedString(@"Recharge the battery soon", @"");
 			}
 			if( userNotification ) {
@@ -260,7 +273,6 @@ static NSArray * uuidServices = nil;
 		}
 		
 		batteryLevel = newBatteryLevel;
-		NSLog(@"Battery state:%@",[[[[xmlDocument nodesForXPath:@"//battery" error:NULL] lastObject] attributeForName:@"state"] stringValue]);
 		[self updateImage];
 	}
 	else if([path isEqualToString:@"/api/audio/noise_cancellation/enabled/get"]) {
@@ -348,6 +360,34 @@ static NSArray * uuidServices = nil;
 //	NSLog(@"%s",__FUNCTION__);
 //}
 
+#pragma mark NSTokenField delegate
+
+// For advanced battery settings
+- (NSArray *)tokenField:(NSTokenField *)tokenField
+	   shouldAddObjects:(NSArray *)tokens
+				atIndex:(NSUInteger)index {
+	NSMutableArray * validatedTokens = [NSMutableArray array];
+	NSArray * notificationLevels = [[NSUserDefaults standardUserDefaults] arrayForKey:@"BatteryNotificationLevels"];
+	for (NSString * currentToken in tokens) {
+		int currentIntValue = [currentToken intValue];
+		if(currentIntValue <= 2 || currentIntValue > 99) {
+			NSBeep();
+			continue;
+		}
+		NSString * newValue = [NSString stringWithFormat:@"%i%%",currentIntValue];
+		if([notificationLevels containsObject:newValue]){
+			NSBeep();
+			continue;
+		}
+		if([validatedTokens containsObject:newValue]){
+			NSBeep();
+			continue;
+		}
+		[validatedTokens addObject:newValue];
+	}
+	return validatedTokens;
+}
+
 #pragma mark Actions
 - (IBAction)toogleBatteryNotifications:(id)sender {
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
@@ -386,6 +426,10 @@ static NSArray * uuidServices = nil;
 	[NSApp activateIgnoringOtherApps:YES];
 }
 
+- (IBAction)showAdvancedBatteryOptions:(id)sender {
+	[self.advancedBatteryWindow makeKeyAndOrderFront:sender];
+	[NSApp activateIgnoringOtherApps:YES];
+}
 
 @end
 
