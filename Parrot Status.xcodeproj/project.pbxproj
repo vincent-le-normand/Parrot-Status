@@ -17,6 +17,8 @@
 		BF91F58C1A03AB86006634CF /* Sparkle.framework in Copy Framework */ = {isa = PBXBuildFile; fileRef = BF91F5891A03AB6C006634CF /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BF91F58E1A03B108006634CF /* dsa_pub.pem in Resources */ = {isa = PBXBuildFile; fileRef = BF91F58D1A03B108006634CF /* dsa_pub.pem */; };
 		BF91F5901A03BBF0006634CF /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = BF91F58F1A03BBF0006634CF /* Credits.rtf */; };
+		BF91F5931A03C3A4006634CF /* PFMoveApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF91F5921A03C3A4006634CF /* PFMoveApplication.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		BFC2266D1A03C4AB0068B8BB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFC2266C1A03C4AB0068B8BB /* Security.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +60,10 @@
 		BF91F5891A03AB6C006634CF /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sparkle.framework; sourceTree = "<group>"; };
 		BF91F58D1A03B108006634CF /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dsa_pub.pem; sourceTree = "<group>"; };
 		BF91F58F1A03BBF0006634CF /* Credits.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Credits.rtf; sourceTree = "<group>"; };
+		BF91F5911A03C3A4006634CF /* PFMoveApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PFMoveApplication.h; path = "lets-move-cocoa/PFMoveApplication.h"; sourceTree = SOURCE_ROOT; };
+		BF91F5921A03C3A4006634CF /* PFMoveApplication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PFMoveApplication.m; path = "lets-move-cocoa/PFMoveApplication.m"; sourceTree = SOURCE_ROOT; };
+		BFC2266C1A03C4AB0068B8BB /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		BFC2266E1A03C4E50068B8BB /* Prefix_header.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Prefix_header.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,8 +71,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF2F6A181A014F3000462846 /* IOBluetooth.framework in Frameworks */,
+				BFC2266D1A03C4AB0068B8BB /* Security.framework in Frameworks */,
 				BF91F58A1A03AB6C006634CF /* Sparkle.framework in Frameworks */,
+				BF2F6A181A014F3000462846 /* IOBluetooth.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,11 +110,15 @@
 			children = (
 				BF2F69F51A013C0000462846 /* AppDelegate.h */,
 				BF2F69F61A013C0000462846 /* AppDelegate.m */,
+				BF91F5911A03C3A4006634CF /* PFMoveApplication.h */,
+				BF91F5921A03C3A4006634CF /* PFMoveApplication.m */,
 				BF2F69FA1A013C0000462846 /* Images.xcassets */,
 				BF2F69FC1A013C0000462846 /* MainMenu.xib */,
 				BF2F69F31A013C0000462846 /* Supporting Files */,
+				BFC2266C1A03C4AB0068B8BB /* Security.framework */,
 				BF91F5891A03AB6C006634CF /* Sparkle.framework */,
 				BF2F6A171A014F3000462846 /* IOBluetooth.framework */,
+				BFC2266E1A03C4E50068B8BB /* Prefix_header.pch */,
 			);
 			path = "Parrot Status";
 			sourceTree = "<group>";
@@ -244,6 +255,7 @@
 			files = (
 				BF2F69F91A013C0000462846 /* main.m in Sources */,
 				BF2F69F71A013C0000462846 /* AppDelegate.m in Sources */,
+				BF91F5931A03C3A4006634CF /* PFMoveApplication.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,11 +370,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Parrot",
-					Status,
-				);
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/Parrot Status\"";
+				GCC_PREFIX_HEADER = "Parrot Status/Prefix_header.pch";
 				INFOPLIST_FILE = "Parrot Status/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -374,11 +383,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Parrot",
-					Status,
-				);
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/Parrot Status\"";
+				GCC_PREFIX_HEADER = "Parrot Status/Prefix_header.pch";
 				INFOPLIST_FILE = "Parrot Status/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";

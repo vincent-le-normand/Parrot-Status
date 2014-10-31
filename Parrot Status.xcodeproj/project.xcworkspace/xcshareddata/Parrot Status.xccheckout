@@ -12,6 +12,8 @@
 	<dict>
 		<key>3C134A98E1C9FB6AFDB0ABD839CC14A94C3F256A</key>
 		<string>https://github.com/vincent-le-normand/Parrot-Status.git</string>
+		<key>86B1D2467EF5CDCCE524112DDD2EFB231FA28639</key>
+		<string>https://github.com/rsms/lets-move-cocoa.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>Parrot Status.xcodeproj</string>
@@ -19,6 +21,8 @@
 	<dict>
 		<key>3C134A98E1C9FB6AFDB0ABD839CC14A94C3F256A</key>
 		<string>../..</string>
+		<key>86B1D2467EF5CDCCE524112DDD2EFB231FA28639</key>
+		<string>../..lets-move-cocoa</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/vincent-le-normand/Parrot-Status.git</string>
@@ -35,6 +39,14 @@
 			<string>3C134A98E1C9FB6AFDB0ABD839CC14A94C3F256A</string>
 			<key>IDESourceControlWCCName</key>
 			<string>Parrot%20Status</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>86B1D2467EF5CDCCE524112DDD2EFB231FA28639</string>
+			<key>IDESourceControlWCCName</key>
+			<string>Parrot%20Statuslets-move-cocoa</string>
 		</dict>
 	</array>
 </dict>

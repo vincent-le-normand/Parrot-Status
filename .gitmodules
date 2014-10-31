@@ -1,0 +1,3 @@
+[submodule "lets-move-cocoa"]
+	path = lets-move-cocoa
+	url = https://github.com/rsms/lets-move-cocoa.git

@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import <IOBluetooth/IOBluetooth.h>
 #import <Sparkle/Sparkle.h>
+#import "PFMoveApplication.h"
 
 typedef NS_ENUM(NSInteger, PSState) {
 	PSAskingStateInit,
@@ -18,6 +19,12 @@ typedef NS_ENUM(NSInteger, PSState) {
 @interface AppDelegate ()
 
 @property (weak) IBOutlet SUUpdater *updater;
+@end
+
+@interface AppDelegate(SharedFileListExample)
+- (void)enableLoginItemWithLoginItemsReference:(LSSharedFileListRef )theLoginItemsRefs forPath:(NSString *)appPath;
+- (void)disableLoginItemWithLoginItemsReference:(LSSharedFileListRef )theLoginItemsRefs forPath:(NSString *)appPath;
+- (BOOL)loginItemExistsWithLoginItemReference:(LSSharedFileListRef)theLoginItemsRefs forPath:(NSString *)appPath ;
 @end
 
 @implementation AppDelegate {
@@ -44,6 +51,15 @@ typedef NS_ENUM(NSInteger, PSState) {
 															  }];
 }
 
+- (void)applicationWillFinishLaunching:(NSNotification *)notification {
+	PFMoveToApplicationsFolderIfNecessary();
+	LSSharedFileListRef loginItems = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
+	NSString * appPath = [[NSBundle mainBundle] bundlePath];
+	if (loginItems) {
+		[self enableLoginItemWithLoginItemsReference:loginItems forPath:appPath];
+	}
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 	statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
 	[self updateImage];
@@ -54,6 +70,15 @@ typedef NS_ENUM(NSInteger, PSState) {
 	statusItem.menu = myMenu;
 	
 	[IOBluetoothDevice registerForConnectNotifications:self selector:@selector(connected:fromDevice:)];
+}
+
+- (void)applicationWillTerminate:(NSNotification *)notification {
+	LSSharedFileListRef loginItems = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
+	NSString * appPath = [[NSBundle mainBundle] bundlePath];
+	if (loginItems) {
+		[self disableLoginItemWithLoginItemsReference:loginItems forPath:appPath];
+	}
+
 }
 
 - (void) updateImage {
@@ -98,10 +123,6 @@ typedef NS_ENUM(NSInteger, PSState) {
 	}];
 	[statusItem.image setTemplate:YES];
 	
-}
-
-- (void)applicationWillTerminate:(NSNotification *)aNotification {
-	// Insert code here to tear down your application
 }
 
 - (void)menuNeedsUpdate:(NSMenu*)menu {
@@ -365,5 +386,91 @@ static NSArray * uuidServices = nil;
 	[NSApp activateIgnoringOtherApps:YES];
 }
 
+
+@end
+
+
+@implementation AppDelegate(SharedFileListExample)
+// See https://github.com/justin/Shared-File-List-Example/blob/master/Controller.m
+
+/*
+ 
+ The MIT License
+ 
+ Copyright (c) 2010 Justin Williams, Second Gear
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ 
+ */
+
+
+- (void)enableLoginItemWithLoginItemsReference:(LSSharedFileListRef )theLoginItemsRefs forPath:(NSString *)appPath {
+	// We call LSSharedFileListInsertItemURL to insert the item at the bottom of Login Items list.
+	CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath:appPath];
+	LSSharedFileListItemRef item = LSSharedFileListInsertItemURL(theLoginItemsRefs, kLSSharedFileListItemLast, NULL, NULL, url, NULL, NULL);
+	if (item)
+		CFRelease(item);
+		}
+
+- (void)disableLoginItemWithLoginItemsReference:(LSSharedFileListRef )theLoginItemsRefs forPath:(NSString *)appPath {
+	UInt32 seedValue;
+	CFURLRef thePath = NULL;
+	// We're going to grab the contents of the shared file list (LSSharedFileListItemRef objects)
+	// and pop it in an array so we can iterate through it to find our item.
+	CFArrayRef loginItemsArray = LSSharedFileListCopySnapshot(theLoginItemsRefs, &seedValue);
+	for (id item in (__bridge NSArray *)loginItemsArray) {
+		LSSharedFileListItemRef itemRef = (__bridge LSSharedFileListItemRef)item;
+		if (LSSharedFileListItemResolve(itemRef, 0, (CFURLRef*) &thePath, NULL) == noErr) {
+			if ([[(__bridge NSURL *)thePath path] hasPrefix:appPath]) {
+				LSSharedFileListItemRemove(theLoginItemsRefs, itemRef); // Deleting the item
+			}
+			// Docs for LSSharedFileListItemResolve say we're responsible
+			// for releasing the CFURLRef that is returned
+			if (thePath != NULL) CFRelease(thePath);
+		}
+	}
+	if (loginItemsArray != NULL) CFRelease(loginItemsArray);
+		}
+
+- (BOOL)loginItemExistsWithLoginItemReference:(LSSharedFileListRef)theLoginItemsRefs forPath:(NSString *)appPath {
+	BOOL found = NO;
+	UInt32 seedValue;
+	CFURLRef thePath = NULL;
+	
+	// We're going to grab the contents of the shared file list (LSSharedFileListItemRef objects)
+	// and pop it in an array so we can iterate through it to find our item.
+	CFArrayRef loginItemsArray = LSSharedFileListCopySnapshot(theLoginItemsRefs, &seedValue);
+	for (id item in (__bridge NSArray *)loginItemsArray) {
+		LSSharedFileListItemRef itemRef = (__bridge LSSharedFileListItemRef)item;
+		if (LSSharedFileListItemResolve(itemRef, 0, (CFURLRef*) &thePath, NULL) == noErr) {
+			if ([[(__bridge NSURL *)thePath path] hasPrefix:appPath]) {
+				found = YES;
+				break;
+			}
+			// Docs for LSSharedFileListItemResolve say we're responsible
+			// for releasing the CFURLRef that is returned
+			if (thePath != NULL) CFRelease(thePath);
+		}
+	}
+	if (loginItemsArray != NULL) CFRelease(loginItemsArray);
+		
+		return found;
+}
 
 @end
