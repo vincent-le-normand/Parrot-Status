@@ -19,7 +19,7 @@ To install the software, drag it onto your Application Folder.
 
 License
 =======
-This softwre is distributed under BSD Licence.
+This software is distributed under BSD Licence.
 
 https://raw.githubusercontent.com/vincent-le-normand/Parrot-Status/master/LICENSE
 
