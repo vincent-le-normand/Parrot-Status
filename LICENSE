@@ -16,3 +16,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 Parrot and Parrot Zik are registered trademarks.
 
 We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with Parrot S.A, or any of its subsidiaries or its affiliates. The official Parrot web site is available at www.parrot.com. 
+
+---
+
+Thanks to m0sia (https://github.com/m0sia) for the reverse engineering of Parrot Zik communication protocol.
+See https://github.com/m0sia/pyParrotZik for original status item project, and if you need this kind of software for Linux or Windows.
