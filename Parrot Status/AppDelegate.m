@@ -37,6 +37,12 @@ typedef NS_ENUM(NSInteger, PSState) {
 	BOOL concertHall;
 }
 
++ (void) initialize {
+	[[NSUserDefaults standardUserDefaults] registerDefaults:@{
+															  @"ShowBatteryNotifications":@YES
+															  }];
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 	statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
 	[self updateImage];
@@ -102,7 +108,12 @@ typedef NS_ENUM(NSInteger, PSState) {
 	if( state == PSAskingStateConnected) {
 		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Connected to %@", @""),name] action:@selector(test) keyEquivalent:@""];
 		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Version %@", @""),version] action:@selector(test) keyEquivalent:@""];
-		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Battery level: %i%% %@", @""),batteryLevel,(batteryCharging?NSLocalizedString(@"- charging", @""):@"")] action:@selector(test) keyEquivalent:@""];
+		if(batteryCharging) {
+			[menu addItemWithTitle:NSLocalizedString(@"Battery level: Charging", @"") action:@selector(test) keyEquivalent:@""];
+		}
+		else {
+			[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Battery level: %i%%", @""),batteryLevel] action:@selector(test) keyEquivalent:@""];
+		}
 		[menu addItem:[NSMenuItem separatorItem]];
 		[[menu addItemWithTitle:NSLocalizedString(@"Noise cancellation", @"") action:@selector(toggleNoiseCancellation:) keyEquivalent:@""] setState:noiseCancel?NSOnState:NSOffState];
 		[[menu addItemWithTitle:NSLocalizedString(@"Auto connection", @"") action:@selector(toggleAutoConnect:) keyEquivalent:@""] setState:autoConnection?NSOnState:NSOffState];
@@ -112,6 +123,7 @@ typedef NS_ENUM(NSInteger, PSState) {
 	else {
 		[menu addItemWithTitle:NSLocalizedString(@"Not connected",@"") action:@selector(test) keyEquivalent:@""];
 	}
+	[[menu addItemWithTitle:NSLocalizedString(@"Battery notifications", @"") action:@selector(toogleBatteryNotifications:) keyEquivalent:@""] setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryNotifications"]?NSOnState:NSOffState];
 	[menu addItem:[NSMenuItem separatorItem]];
 	[menu addItemWithTitle:NSLocalizedString(@"About", @"") action:@selector(about:) keyEquivalent:@""];
 	[menu addItem:[NSMenuItem separatorItem]];
@@ -192,8 +204,32 @@ static NSArray * uuidServices = nil;
 		name = [[[[xmlDocument nodesForXPath:@"//bluetooth" error:NULL] lastObject] attributeForName:@"friendlyname"] stringValue];
 	}
 	else if([path isEqualToString:@"/api/system/battery/get"]) {
-		batteryLevel = [[[[[xmlDocument nodesForXPath:@"//battery" error:NULL] lastObject] attributeForName:@"level"] stringValue] intValue];
+		char newBatteryLevel = [[[[[xmlDocument nodesForXPath:@"//battery" error:NULL] lastObject] attributeForName:@"level"] stringValue] intValue];
 		batteryCharging = [[[[[xmlDocument nodesForXPath:@"//battery" error:NULL] lastObject] attributeForName:@"state"] stringValue] isEqualToString:@"charging"];
+		
+		if([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryNotifications"] && batteryCharging == NO) {
+			NSUserNotification * userNotification = nil;
+			if(batteryLevel>=20 && newBatteryLevel<20) {
+				userNotification = [[NSUserNotification alloc] init];
+				userNotification.title = NSLocalizedString(@"Parrot Zik Batteries Low", @"");
+				userNotification.subtitle = NSLocalizedString(@"20% of battery remaining", @"");
+			}
+			else if(batteryLevel>=10 && newBatteryLevel<10) {
+				userNotification = [[NSUserNotification alloc] init];
+				userNotification.title = NSLocalizedString(@"Parrot Zik Batteries Low", @"");
+				userNotification.subtitle = NSLocalizedString(@"10% of battery remaining", @"");
+			}
+			else if(batteryLevel>=2 && newBatteryLevel<2) {
+				userNotification = [[NSUserNotification alloc] init];
+				userNotification.title = NSLocalizedString(@"Parrot Zik Batteries Low", @"");
+				userNotification.subtitle = NSLocalizedString(@"Recharge the battery soon", @"");
+			}
+			if( userNotification ) {
+				[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:userNotification];
+			}
+		}
+		
+		batteryLevel = newBatteryLevel;
 		NSLog(@"Battery state:%@",[[[[xmlDocument nodesForXPath:@"//battery" error:NULL] lastObject] attributeForName:@"state"] stringValue]);
 		[self updateImage];
 	}
@@ -283,6 +319,12 @@ static NSArray * uuidServices = nil;
 //}
 
 #pragma mark Actions
+- (IBAction)toogleBatteryNotifications:(id)sender {
+	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+	[userDefaults setBool:![userDefaults boolForKey:@"ShowBatteryNotifications"] forKey:@"ShowBatteryNotifications"];
+	
+}
+
 - (IBAction)toggleNoiseCancellation:(id)sender {
 	[self sendRequest:[NSString stringWithFormat:@"SET /api/audio/noise_cancellation/enabled/set?arg=%@",noiseCancel?@"false":@"true"]];
 	[self sendRequest:@"GET /api/audio/noise_cancellation/enabled/get"];
