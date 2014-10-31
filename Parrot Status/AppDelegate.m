@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import <IOBluetooth/IOBluetooth.h>
+#import <Sparkle/Sparkle.h>
 
 typedef NS_ENUM(NSInteger, PSState) {
 	PSAskingStateInit,
@@ -16,7 +17,7 @@ typedef NS_ENUM(NSInteger, PSState) {
 
 @interface AppDelegate ()
 
-@property (weak) IBOutlet NSWindow *window;
+@property (weak) IBOutlet SUUpdater *updater;
 @end
 
 @implementation AppDelegate {
@@ -125,7 +126,15 @@ typedef NS_ENUM(NSInteger, PSState) {
 	}
 	[[menu addItemWithTitle:NSLocalizedString(@"Battery notifications", @"") action:@selector(toogleBatteryNotifications:) keyEquivalent:@""] setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryNotifications"]?NSOnState:NSOffState];
 	[menu addItem:[NSMenuItem separatorItem]];
-	[menu addItemWithTitle:NSLocalizedString(@"About", @"") action:@selector(about:) keyEquivalent:@""];
+	if([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) {
+		NSMenuItem * checkForUpdates = [menu addItemWithTitle:NSLocalizedString(@"Check For Updates…", @"") action:@selector(about:) keyEquivalent:@""];
+		[checkForUpdates setTarget:self.updater];
+		[checkForUpdates setAction:@selector(checkForUpdates:)];
+	}
+	else {
+		[menu addItemWithTitle:NSLocalizedString(@"About", @"") action:@selector(about:) keyEquivalent:@""];
+	}
+	
 	[menu addItem:[NSMenuItem separatorItem]];
 	[menu addItemWithTitle:NSLocalizedString(@"Quit", @"") action:@selector(terminate:) keyEquivalent:@""];
 }

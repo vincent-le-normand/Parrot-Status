@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Parrot Status Changelog</title>
+        <link>https://raw.githubusercontent.com/vincent-le-normand/Parrot-Status/master/appcast.xml</link>
+        <description>Most recent changes with links to updates.</description>
+        <language>en</language>
+		<!--
+		<item>
+			<title>Version 0.9.1</title>
+			<sparkle:releaseNotesLink>
+				https://github.com/vincent-le-normand/Parrot-Status/releases/tag/0.9
+			</sparkle:releaseNotesLink>
+			<pubDate>Thu, 30 Oct 2014 14:00:00 +0000</pubDate>
+			<enclosure url="https://github.com/vincent-le-normand/Parrot-Status/releases/download/0.9.1/Parrot.Status.zip" sparkle:version="2" sparkle:shortVersionString="0.9.1" sparkle:dsaSignature="MC0CFQCeUVlpAtU3cqhIAj7pkzKMZ5IcawIUUFz0awbT3Etew21HTwPFsuow4rY=" length="265060" type="application/octet-stream" />
+			<sparkle:minimumSystemVersion>10.10</sparkle:minimumSystemVersion>
+		</item>
+		 -->
+        <item>
+            <title>Version 0.9</title>
+            <sparkle:releaseNotesLink>
+                https://github.com/vincent-le-normand/Parrot-Status/releases/tag/0.9
+            </sparkle:releaseNotesLink>
+            <pubDate>Thu, 30 Oct 2014 14:00:00 +0000</pubDate>
+            <enclosure url="https://github.com/vincent-le-normand/Parrot-Status/releases/download/0.9/Parrot.Status.zip" sparkle:version="1" sparkle:shortVersionString="0.9" length="265060" sparkle:dsaSignature="MC0CFQCeUVlpAtU3cqhIAj7pkzKMZ5IcawIUUFz0awbT3Etew21HTwPFsuow4rY=" type="application/octet-stream" />
+            <sparkle:minimumSystemVersion>10.10</sparkle:minimumSystemVersion>
+        </item>
+    </channel>
+</rss>
