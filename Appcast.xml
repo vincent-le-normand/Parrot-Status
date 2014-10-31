@@ -5,17 +5,15 @@
         <link>https://raw.githubusercontent.com/vincent-le-normand/Parrot-Status/master/appcast.xml</link>
         <description>Most recent changes with links to updates.</description>
         <language>en</language>
-		<!--
 		<item>
 			<title>Version 0.9.1</title>
 			<sparkle:releaseNotesLink>
-				https://github.com/vincent-le-normand/Parrot-Status/releases/tag/0.9
+				https://github.com/vincent-le-normand/Parrot-Status/releases/tag/0.9.1
 			</sparkle:releaseNotesLink>
-			<pubDate>Thu, 30 Oct 2014 14:00:00 +0000</pubDate>
-			<enclosure url="https://github.com/vincent-le-normand/Parrot-Status/releases/download/0.9.1/Parrot.Status.zip" sparkle:version="2" sparkle:shortVersionString="0.9.1" sparkle:dsaSignature="MC0CFQCeUVlpAtU3cqhIAj7pkzKMZ5IcawIUUFz0awbT3Etew21HTwPFsuow4rY=" length="265060" type="application/octet-stream" />
+			<pubDate>Thu, 31 Oct 2014 19:00:00 +0000</pubDate>
+			<enclosure url="https://github.com/vincent-le-normand/Parrot-Status/releases/download/0.9.1/Parrot.Status.zip" sparkle:version="2" sparkle:shortVersionString="0.9.1" sparkle:dsaSignature="MC4CFQCUvhcJRpUuGAxI6w6VM3uDQlIK1QIVALE1iT7kwSKWujfrfCHHqnIgQRQI" length="1372335" type="application/octet-stream" />
 			<sparkle:minimumSystemVersion>10.10</sparkle:minimumSystemVersion>
 		</item>
-		 -->
         <item>
             <title>Version 0.9</title>
             <sparkle:releaseNotesLink>
