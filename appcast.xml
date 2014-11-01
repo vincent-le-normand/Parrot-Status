@@ -5,12 +5,22 @@
         <link>https://vincent-le-normand.github.io/Parrot-Status/appcast.xml</link>
         <description>Most recent changes with links to updates.</description>
         <language>en</language>
+		
+		<item>
+			<title>Version 0.9.2</title>
+			<sparkle:releaseNotesLink>
+				https://github.com/vincent-le-normand/Parrot-Status/releases/tag/0.9.2
+			</sparkle:releaseNotesLink>
+			<pubDate>Sat, 1 Nov 2014 12:00:00 +0000</pubDate>
+			<enclosure url="https://github.com/vincent-le-normand/Parrot-Status/releases/download/0.9.2/Parrot.Status.zip" sparkle:version="2" sparkle:shortVersionString="0.9.2" sparkle:dsaSignature="MCwCFB7/L+nSXQZNx4U41IP1V0AytMWLAhRtvZK8mie8k/YAztC+zkScZC5oYA==" length="1374828" type="application/octet-stream" />
+			<sparkle:minimumSystemVersion>10.10</sparkle:minimumSystemVersion>
+		</item>
 		<item>
 			<title>Version 0.9.1</title>
 			<sparkle:releaseNotesLink>
 				https://github.com/vincent-le-normand/Parrot-Status/releases/tag/0.9.1
 			</sparkle:releaseNotesLink>
-			<pubDate>Thu, 31 Oct 2014 19:00:00 +0000</pubDate>
+			<pubDate>Fri, 31 Oct 2014 19:00:00 +0000</pubDate>
 			<enclosure url="https://github.com/vincent-le-normand/Parrot-Status/releases/download/0.9.1/Parrot.Status.zip" sparkle:version="2" sparkle:shortVersionString="0.9.1" sparkle:dsaSignature="MC4CFQCUvhcJRpUuGAxI6w6VM3uDQlIK1QIVALE1iT7kwSKWujfrfCHHqnIgQRQI" length="1372335" type="application/octet-stream" />
 			<sparkle:minimumSystemVersion>10.10</sparkle:minimumSystemVersion>
 		</item>
