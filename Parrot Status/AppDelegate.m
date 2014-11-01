@@ -43,13 +43,17 @@ typedef NS_ENUM(NSInteger, PSState) {
 	BOOL noiseCancel;
 	BOOL louReedMode;
 	BOOL concertHall;
+	CFAbsoluteTime showUntilDate;
 }
 
 + (void) initialize {
 	[[NSUserDefaults standardUserDefaults] registerDefaults:@{
 															  @"ShowBatteryNotifications":@YES,
 															  @"ShowBatteryAboutToDieNotifications":@YES,
-															  @"BatteryNotificationLevels":@[@"20%",@"10%"]
+															  @"BatteryNotificationLevels":@[@"20%",@"10%"],
+															  @"ShowBatteryPercentage":@NO,
+															  @"ShowBatteryIcon":@YES,
+															  @"HiddenWhenDisconnected":@NO,
 															  }];
 }
 
@@ -62,15 +66,31 @@ typedef NS_ENUM(NSInteger, PSState) {
 	}
 }
 
+- (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender {
+	if([[NSUserDefaults standardUserDefaults] boolForKey:@"HiddenWhenDisconnected"] && state != PSAskingStateConnected) {
+		showUntilDate = CFAbsoluteTimeGetCurrent()+30.;
+		[self updateStatusItem];
+		[statusItem popUpStatusItemMenu:statusItem.menu];
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(31 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			[self updateStatusItem];
+		});
+	}
+	return NO;
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+	[self setupStatusItem];
+	[IOBluetoothDevice registerForConnectNotifications:self selector:@selector(connected:fromDevice:)];
+}
+
+- (void) setupStatusItem {
 	statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSSquareStatusItemLength];
-	[self updateImage];
+	[self updateStatusItem];
 	statusItem.highlightMode = YES;
 	NSMenu * myMenu = [[NSMenu alloc] initWithTitle:@"Test"];
 	myMenu.delegate = self;
 	statusItem.menu = myMenu;
-	
-	[IOBluetoothDevice registerForConnectNotifications:self selector:@selector(connected:fromDevice:)];
+	statusItem.button.appearsDisabled = YES;
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
@@ -82,61 +102,104 @@ typedef NS_ENUM(NSInteger, PSState) {
 
 }
 
-- (void) updateImage {
-	statusItem.image = [NSImage imageWithSize:NSMakeSize(43, 43) flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
-		if( state == PSAskingStateConnected) {
-			[[NSColor blackColor] set];
+- (void) updateStatusItem {
+	if([[NSUserDefaults standardUserDefaults] boolForKey:@"HiddenWhenDisconnected"]) {
+		if(state != PSAskingStateConnected && showUntilDate<CFAbsoluteTimeGetCurrent() ) {
+			[statusItem.statusBar removeStatusItem:statusItem];
+			statusItem = nil;
+			return;
 		}
 		else {
-			[[NSColor colorWithDeviceWhite:0.0 alpha:0.5] set];
-		}
-		NSBezierPath  * headset = [NSBezierPath bezierPath];
-		[headset moveToPoint:NSMakePoint(10.5, 19.5)];
-		[headset curveToPoint:NSMakePoint(18.5, 19.5) controlPoint1:NSMakePoint(13.5, 31.5) controlPoint2:NSMakePoint(15.5, 31.5)];
-		[headset appendBezierPathWithOvalInRect:NSMakeRect(10.5, 15.5, 2, 6)];
-		[headset appendBezierPathWithOvalInRect:NSMakeRect(16.5, 15.5, 2, 6)];
-		[headset setLineWidth:2.5];
-		[headset stroke];
-		if( state == PSAskingStateConnected) {
-			[[NSColor blackColor] set];
-			NSRect batteryRect = NSMakeRect(20.5,14.5,6,13);
-			[[NSBezierPath bezierPathWithRect:batteryRect] stroke];
-			[[NSBezierPath bezierPathWithRect:NSMakeRect(NSMidX(batteryRect)-2., NSMaxY(batteryRect), 4., 2.)] fill];
-			batteryRect = NSInsetRect(batteryRect, 1, 1);
-			
-			if(batteryCharging)
-			{
-				NSRect lightningRect = NSInsetRect(batteryRect, 1, 1);
-				NSBezierPath * lightning = [NSBezierPath bezierPath];
-				[lightning moveToPoint:NSMakePoint(NSMaxX(lightningRect), NSMaxY(lightningRect))];
-				[lightning lineToPoint:NSMakePoint(NSMinX(lightningRect), NSMidY(lightningRect)-1.)];
-				[lightning lineToPoint:NSMakePoint(NSMaxX(lightningRect), NSMidY(lightningRect)+1.)];
-				[lightning lineToPoint:NSMakePoint(NSMinX(lightningRect), NSMinY(lightningRect))];
-				[lightning stroke];
+			if(statusItem==nil) {
+				[self setupStatusItem];
 			}
-
-			
-			batteryRect.size.height *= ((CGFloat)batteryLevel)/100.0;
-			[[NSBezierPath bezierPathWithRect:batteryRect] fill];
 		}
-//		NSRectFill(dstRect);
-		return YES;
-	}];
-	[statusItem.image setTemplate:YES];
-	
+	}
+	if([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryIcon"]) {
+		CGFloat imageWidth = (state == PSAskingStateConnected) ? 22 : 16;
+		statusItem.button.image = [NSImage imageWithSize:NSMakeSize(imageWidth, 16) flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
+			[[NSColor colorWithDeviceWhite:0.0 alpha:0.9] set];
+			NSBezierPath  * headset = [NSBezierPath bezierPath];
+			[headset moveToPoint:NSMakePoint(1.5, 4.5)];
+			[headset curveToPoint:NSMakePoint(9.5, 4.5) controlPoint1:NSMakePoint(4.5, 16.5) controlPoint2:NSMakePoint(6.5, 16.5)];
+			[headset appendBezierPathWithOvalInRect:NSMakeRect(1.5, 0.5, 2, 6)];
+			[headset appendBezierPathWithOvalInRect:NSMakeRect(7.5, 0.5, 2, 6)];
+			[headset setLineWidth:2.5];
+			[headset stroke];
+			if( state == PSAskingStateConnected) {
+				[[NSColor blackColor] set];
+				NSRect batteryRect = NSMakeRect(11.5,0.5,6,13);
+				[[NSBezierPath bezierPathWithRect:batteryRect] stroke];
+				[[NSBezierPath bezierPathWithRect:NSMakeRect(NSMidX(batteryRect)-2., NSMaxY(batteryRect), 4., 2.)] fill];
+				batteryRect = NSInsetRect(batteryRect, 1, 1);
+				
+				if(batteryCharging)
+				{
+					NSRect lightningRect = NSInsetRect(batteryRect, 1, 1);
+					NSBezierPath * lightning = [NSBezierPath bezierPath];
+					[lightning moveToPoint:NSMakePoint(NSMaxX(lightningRect), NSMaxY(lightningRect))];
+					[lightning lineToPoint:NSMakePoint(NSMinX(lightningRect), NSMidY(lightningRect)-1.)];
+					[lightning lineToPoint:NSMakePoint(NSMaxX(lightningRect), NSMidY(lightningRect)+1.)];
+					[lightning lineToPoint:NSMakePoint(NSMinX(lightningRect), NSMinY(lightningRect))];
+					[lightning stroke];
+				}
+				
+				
+				batteryRect.size.height *= ((CGFloat)batteryLevel)/100.0;
+				[[NSBezierPath bezierPathWithRect:batteryRect] fill];
+			}
+			//		NSRectFill(dstRect);
+			return YES;
+		}];
+		[statusItem.image setTemplate:YES];
+	}
+	else {
+		statusItem.image = nil;
+	}
+	if([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryPercentage"]) {
+		if( state == PSAskingStateConnected) {
+			if(batteryCharging) {
+				statusItem.button.title = NSLocalizedString(@"Charging", @"");
+			}
+			else {
+				statusItem.button.title = [NSString stringWithFormat:NSLocalizedString(@"%i%%", @""),batteryLevel];
+			}
+		}
+		else {
+			statusItem.button.title = NSLocalizedString(@"-", @"");
+		}
+		statusItem.length = NSVariableStatusItemLength;
+	}
+	else {
+		statusItem.button.title = nil;
+		statusItem.length = NSSquareStatusItemLength;
+	}
+	statusItem.button.appearsDisabled = state != PSAskingStateConnected;
+	statusItem.button.imagePosition = NSImageRight;
 }
 
 - (void)menuNeedsUpdate:(NSMenu*)menu {
 	[menu removeAllItems];
 	if( state == PSAskingStateConnected) {
-		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Connected to %@", @""),name] action:@selector(test) keyEquivalent:@""];
-		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Version %@", @""),version] action:@selector(test) keyEquivalent:@""];
+		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Connected to %@", @""),name] action:NULL keyEquivalent:@""];
+		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Version %@", @""),version] action:NULL keyEquivalent:@""];
+		NSMenuItem * batteryMenuItem = nil;
+		NSMenu * batteryMenu = [[NSMenu alloc] initWithTitle:@""];
 		if(batteryCharging) {
-			[menu addItemWithTitle:NSLocalizedString(@"Battery level: Charging", @"") action:@selector(test) keyEquivalent:@""];
+			batteryMenuItem =[menu addItemWithTitle:NSLocalizedString(@"Battery level: Charging", @"") action:NULL keyEquivalent:@""];
 		}
 		else {
-			[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Battery level: %i%%", @""),batteryLevel] action:@selector(test) keyEquivalent:@""];
+			batteryMenuItem =[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Battery level: %i%%", @""),batteryLevel] action:NULL keyEquivalent:@""];
 		}
+		batteryMenuItem.submenu = batteryMenu;
+		
+		BOOL showBatteryPercentage = [[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryPercentage"];
+		BOOL showBatteryIcon = [[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryIcon"];
+		
+		[[batteryMenu addItemWithTitle:NSLocalizedString(@"Show Battery Icon Only", @"") action:@selector(showBatteryIconOnly:) keyEquivalent:@""] setState:(showBatteryIcon&&!showBatteryPercentage)?NSOnState:NSOffState];
+		[[batteryMenu addItemWithTitle:NSLocalizedString(@"Show Battery Icon And Percentage", @"") action:@selector(showBatteryIconAndText:) keyEquivalent:@""] setState:(showBatteryIcon&&showBatteryPercentage)?NSOnState:NSOffState];
+		[[batteryMenu addItemWithTitle:NSLocalizedString(@"Show Battery Percentage Only", @"") action:@selector(showBatteryTextOnly:) keyEquivalent:@""] setState:(!showBatteryIcon&&showBatteryPercentage)?NSOnState:NSOffState];
+		
 		[menu addItem:[NSMenuItem separatorItem]];
 		[[menu addItemWithTitle:NSLocalizedString(@"Noise cancellation", @"") action:@selector(toggleNoiseCancellation:) keyEquivalent:@""] setState:noiseCancel?NSOnState:NSOffState];
 		[[menu addItemWithTitle:NSLocalizedString(@"Auto connection", @"") action:@selector(toggleAutoConnect:) keyEquivalent:@""] setState:autoConnection?NSOnState:NSOffState];
@@ -144,7 +207,14 @@ typedef NS_ENUM(NSInteger, PSState) {
 		[[menu addItemWithTitle:NSLocalizedString(@"Concert hall mode", @"") action:@selector(toggleConcertHall:) keyEquivalent:@""] setState:concertHall?NSOnState:NSOffState];
 	}
 	else {
-		[menu addItemWithTitle:NSLocalizedString(@"Not connected",@"") action:@selector(test) keyEquivalent:@""];
+		NSMenuItem * notConnected = [menu addItemWithTitle:NSLocalizedString(@"Not connected",@"") action:NULL keyEquivalent:@""];
+		notConnected.submenu = [[NSMenu alloc] initWithTitle:@""];
+		if([[NSUserDefaults standardUserDefaults] boolForKey:@"HiddenWhenDisconnected"]) {
+			[notConnected.submenu addItemWithTitle:NSLocalizedString(@"Show when disconnected", @"") action:@selector(showWhenDisconnected:) keyEquivalent:@""];
+		}
+		else {
+			[notConnected.submenu addItemWithTitle:NSLocalizedString(@"Hide when disconnected", @"") action:@selector(hideWhenDisconnected:) keyEquivalent:@""];
+		}
 	}
 	if([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) {
 		[menu addItemWithTitle:NSLocalizedString(@"Battery notifications…", @"") action:@selector(showAdvancedBatteryOptions:) keyEquivalent:@""];
@@ -211,7 +281,7 @@ static NSArray * uuidServices = nil;
 		if([service matchesUUIDArray:uuidServices]) {
 			NSLog(@"Disconnected from %@", device.nameOrAddress);
 			state = PSAskingStateInit;
-			[self updateImage];
+			[self updateStatusItem];
 		}
 	}
 }
@@ -273,23 +343,19 @@ static NSArray * uuidServices = nil;
 		}
 		
 		batteryLevel = newBatteryLevel;
-		[self updateImage];
+		[self updateStatusItem];
 	}
 	else if([path isEqualToString:@"/api/audio/noise_cancellation/enabled/get"]) {
 		noiseCancel = [[[[[xmlDocument nodesForXPath:@"//noise_cancellation" error:NULL] lastObject] attributeForName:@"enabled"] stringValue] isEqualToString:@"true"];
-		[self updateImage];
 	}
 	else if([path isEqualToString:@"/api/system/auto_connection/enabled/get"]) {
 		autoConnection = [[[[[xmlDocument nodesForXPath:@"//auto_connection" error:NULL] lastObject] attributeForName:@"enabled"] stringValue] isEqualToString:@"true"];
-		[self updateImage];
 	}
 	else if([path isEqualToString:@"/api/audio/specific_mode/enabled/get"]) {
 		louReedMode = [[[[[xmlDocument nodesForXPath:@"//specific_mode" error:NULL] lastObject] attributeForName:@"enabled"] stringValue] isEqualToString:@"true"];
-		[self updateImage];
 	}
 	else if([path isEqualToString:@"/api/audio/sound_effect/enabled/get"]) {
 		concertHall = [[[[[xmlDocument nodesForXPath:@"//sound_effect" error:NULL] lastObject] attributeForName:@"enabled"] stringValue] isEqualToString:@"true"];
-		[self updateImage];
 	}
 	else {
 		NSLog(@"Unknown answer : %@ %@ ",path,xmlDocument);
@@ -392,7 +458,6 @@ static NSArray * uuidServices = nil;
 - (IBAction)toogleBatteryNotifications:(id)sender {
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	[userDefaults setBool:![userDefaults boolForKey:@"ShowBatteryNotifications"] forKey:@"ShowBatteryNotifications"];
-	
 }
 
 - (IBAction)toggleNoiseCancellation:(id)sender {
@@ -431,6 +496,41 @@ static NSArray * uuidServices = nil;
 	[NSApp activateIgnoringOtherApps:YES];
 }
 
+- (IBAction)showBatteryIconOnly:(id)sender {
+	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"ShowBatteryPercentage"];
+	[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"ShowBatteryIcon"];
+	[self updateStatusItem];
+}
+
+- (IBAction)showBatteryIconAndText:(id)sender {
+	[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"ShowBatteryPercentage"];
+	[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"ShowBatteryIcon"];
+	[self updateStatusItem];
+}
+
+- (IBAction)showBatteryTextOnly:(id)sender {
+	[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"ShowBatteryPercentage"];
+	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"ShowBatteryIcon"];
+	[self updateStatusItem];
+}
+
+- (IBAction)hideWhenDisconnected:(id)sender {
+	NSAlert * alert = [[NSAlert alloc] init];
+	alert.messageText = NSLocalizedString(@"Parrot Status will be hidden when device is disconnected", @"");
+	alert.informativeText = NSLocalizedString(@"To show menu when the device is disconnected, you will have to launch the app again.", @"");
+	[alert addButtonWithTitle:NSLocalizedString(@"Hide", @"")];
+	[alert addButtonWithTitle:NSLocalizedString(@"Cancel", @"")];
+	NSModalResponse response = [alert runModal];
+	if(response == NSAlertFirstButtonReturn) {
+		[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"HiddenWhenDisconnected"];
+		[self updateStatusItem];
+	}
+}
+
+- (IBAction)showWhenDisconnected:(id)sender {
+	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"HiddenWhenDisconnected"];
+	[self updateStatusItem];
+}
 @end
 
 
