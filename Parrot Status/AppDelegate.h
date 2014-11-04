@@ -7,7 +7,6 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import <CoreBluetooth/CoreBluetooth.h>
 
 @interface AppDelegate : NSObject <NSApplicationDelegate,NSMenuDelegate>
 

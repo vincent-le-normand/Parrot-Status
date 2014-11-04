@@ -10,6 +10,7 @@
 #import <IOBluetooth/IOBluetooth.h>
 #import <Sparkle/Sparkle.h>
 #import "PFMoveApplication.h"
+#import <Quartz/Quartz.h>
 
 typedef NS_ENUM(NSInteger, PSState) {
 	PSAskingStateInit,
@@ -44,6 +45,8 @@ typedef NS_ENUM(NSInteger, PSState) {
 	BOOL louReedMode;
 	BOOL concertHall;
 	CFAbsoluteTime showUntilDate;
+	
+	CFMachPortRef eventTap;
 }
 
 + (void) initialize {
@@ -178,7 +181,32 @@ typedef NS_ENUM(NSInteger, PSState) {
 	statusItem.button.imagePosition = NSImageRight;
 }
 
-- (void)menuNeedsUpdate:(NSMenu*)menu {
+CGEventRef modifiersChanged( CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon ) {
+	if(CGEventGetType(event) != kCGEventFlagsChanged) {
+		return NULL;
+	}
+	AppDelegate * myself = (__bridge AppDelegate *)(refcon);
+	[myself menuNeedsUpdate:myself->statusItem.menu event:[NSEvent eventWithCGEvent:event]];
+	[myself->statusItem.menu update];
+	return NULL;
+}
+
+- (void) menuWillOpen:(NSMenu *)menu {
+	eventTap = CGEventTapCreate(kCGHIDEventTap,kCGHeadInsertEventTap,kCGEventTapOptionListenOnly,CGEventMaskBit(kCGEventFlagsChanged),&modifiersChanged,(__bridge void *)(self));
+	CFRunLoopSourceRef	eventSrc = CFMachPortCreateRunLoopSource(NULL, eventTap, 0);
+	if (eventSrc) {
+		CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], eventSrc, kCFRunLoopCommonModes);
+		CFRelease(eventSrc);
+		CGEventTapEnable(eventTap, true);
+	}
+}
+
+- (void) menuDidClose:(NSMenu *)menu{
+	CGEventTapEnable(eventTap, false);
+	eventTap = NULL;
+}
+
+- (void)menuNeedsUpdate:(NSMenu*)menu event:(NSEvent*)event {
 	[menu removeAllItems];
 	if( state == PSAskingStateConnected) {
 		[menu addItemWithTitle:[NSString stringWithFormat:NSLocalizedString(@"Connected to %@", @""),name] action:NULL keyEquivalent:@""];
@@ -216,7 +244,7 @@ typedef NS_ENUM(NSInteger, PSState) {
 			[notConnected.submenu addItemWithTitle:NSLocalizedString(@"Hide when disconnected", @"") action:@selector(hideWhenDisconnected:) keyEquivalent:@""];
 		}
 	}
-	if([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) {
+	if([event modifierFlags] & NSAlternateKeyMask) {
 		[menu addItemWithTitle:NSLocalizedString(@"Battery notifications…", @"") action:@selector(showAdvancedBatteryOptions:) keyEquivalent:@""];
 	}
 	else {
@@ -224,7 +252,7 @@ typedef NS_ENUM(NSInteger, PSState) {
 	}
 	
 	[menu addItem:[NSMenuItem separatorItem]];
-	if([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) {
+	if([event modifierFlags] & NSAlternateKeyMask) {
 		NSMenuItem * checkForUpdates = [menu addItemWithTitle:NSLocalizedString(@"Check For Updates…", @"") action:@selector(about:) keyEquivalent:@""];
 		[checkForUpdates setTarget:self.updater];
 		[checkForUpdates setAction:@selector(checkForUpdates:)];
@@ -235,6 +263,10 @@ typedef NS_ENUM(NSInteger, PSState) {
 	
 	[menu addItem:[NSMenuItem separatorItem]];
 	[menu addItemWithTitle:NSLocalizedString(@"Quit", @"") action:@selector(terminate:) keyEquivalent:@""];
+}
+
+- (void)menuNeedsUpdate:(NSMenu*)menu {
+	[self menuNeedsUpdate:menu event:[NSApp currentEvent]];
 }
 
 #pragma mark -
@@ -337,6 +369,11 @@ static NSArray * uuidServices = nil;
 				userNotification.title = NSLocalizedString(@"Parrot Zik Battery Low", @"");
 				userNotification.subtitle = NSLocalizedString(@"Recharge the battery soon", @"");
 			}
+			
+			if( batteryLevel == 100 &&  newBatteryLevel == 0) {
+				userNotification = nil; // Fix wrong notificaiton when disconnecting recharge cable
+			}
+			
 			if( userNotification ) {
 				[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:userNotification];
 			}
@@ -394,7 +431,8 @@ static NSArray * uuidServices = nil;
 			if( state == PSAskingStateInit) {
 				state = PSAskingStateConnected;
 				unsigned char buffer[] = {0x00,0x03,0x02};
-				NSAssert([data isEqualToData:[NSData dataWithBytes:buffer length:3]], @"Recieved unknown init data");
+				BOOL success = [data isEqualToData:[NSData dataWithBytes:buffer length:3]];
+				NSAssert(success, @"Recieved unknown init data");
 				[self sendRequest:@"GET /api/software/version/get"];
 				[self sendRequest:@"GET /api/bluetooth/friendlyname/get"];
 				[self sendRequest:@"GET /api/system/battery/get"];
@@ -531,6 +569,7 @@ static NSArray * uuidServices = nil;
 	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"HiddenWhenDisconnected"];
 	[self updateStatusItem];
 }
+
 @end
 
 
