@@ -273,19 +273,29 @@ CGEventRef modifiersChanged( CGEventTapProxy proxy, CGEventType type, CGEventRef
 #pragma mark IOBluetoothUserNotification
 
 static NSArray * uuidServices = nil;
+static NSArray * uuidServicesZik2 = nil;
 - (void)connected:(IOBluetoothUserNotification *)note fromDevice:(IOBluetoothDevice *)device
 {
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
+        //0ef0f502-f0ee-46c9-986c-54ed027807fb Zik 1
+        //8b6814d3-6ce7-4498-9700-9312c1711f63 Zik 2
 		NSUUID * uuid = [[NSUUID alloc] initWithUUIDString:@"0ef0f502-f0ee-46c9-986c-54ed027807fb"];
 		uuid_t uuidbuf;
 		[uuid getUUIDBytes:uuidbuf];
 		IOBluetoothSDPUUID * uuidBlutooth = [IOBluetoothSDPUUID uuidWithBytes:uuidbuf length:16];
 		uuidServices = @[uuidBlutooth];
-	});
+
+        NSUUID * uuidZik2 = [[NSUUID alloc] initWithUUIDString:@"8b6814d3-6ce7-4498-9700-9312c1711f63"];
+        uuid_t uuidZik2buf;
+        [uuidZik2 getUUIDBytes:uuidZik2buf];
+        IOBluetoothSDPUUID * uuidZik2Blutooth = [IOBluetoothSDPUUID uuidWithBytes:uuidZik2buf length:16];
+        uuidServicesZik2 = @[uuidZik2Blutooth];
+});
 	NSArray * services = device.services;
 	for (IOBluetoothSDPServiceRecord * service in services) {
-		if([service matchesUUIDArray:uuidServices]) {
+		if([service matchesUUIDArray:uuidServices]
+           || [service matchesUUIDArray:uuidServicesZik2]) {
 			IOReturn res = [service getRFCOMMChannelID:&channelId];
 			if(res != kIOReturnSuccess)
 			{
@@ -310,7 +320,8 @@ static NSArray * uuidServices = nil;
 {
 	NSArray * services = device.services;
 	for (IOBluetoothSDPServiceRecord * service in services) {
-		if([service matchesUUIDArray:uuidServices]) {
+		if([service matchesUUIDArray:uuidServices]
+           || [service matchesUUIDArray:uuidServicesZik2]) {
 			NSLog(@"Disconnected from %@", device.nameOrAddress);
 			state = PSAskingStateInit;
 			[self updateStatusItem];
@@ -338,12 +349,18 @@ static NSArray * uuidServices = nil;
 //	NSLog(@"answer for path:%@ : %@",path,xmlDocument);
 	if([path isEqualToString:@"/api/software/version/get"]) {
 		version = [[[[xmlDocument nodesForXPath:@"//software" error:NULL] lastObject] attributeForName:@"version"] stringValue];
+        if(version == nil)
+            //Zik 2
+            version = [[[[xmlDocument nodesForXPath:@"//software" error:NULL] lastObject] attributeForName:@"sip6"] stringValue];
 	}
 	else if([path isEqualToString:@"/api/bluetooth/friendlyname/get"]) {
 		name = [[[[xmlDocument nodesForXPath:@"//bluetooth" error:NULL] lastObject] attributeForName:@"friendlyname"] stringValue];
 	}
 	else if([path isEqualToString:@"/api/system/battery/get"]) {
 		char newBatteryLevel = [[[[[xmlDocument nodesForXPath:@"//battery" error:NULL] lastObject] attributeForName:@"level"] stringValue] intValue];
+        if(newBatteryLevel == '\0')
+            //Zik 2
+            newBatteryLevel = [[[[[xmlDocument nodesForXPath:@"//battery" error:NULL] lastObject] attributeForName:@"percent"] stringValue] intValue];
 		batteryCharging = [[[[[xmlDocument nodesForXPath:@"//battery" error:NULL] lastObject] attributeForName:@"state"] stringValue] isEqualToString:@"charging"];
 		
 		if([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryNotifications"] && batteryCharging == NO) {
