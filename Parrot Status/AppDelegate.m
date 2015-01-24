@@ -320,7 +320,8 @@ static NSArray * uuidServicesZik2 = nil;
 {
 	NSArray * services = device.services;
 	for (IOBluetoothSDPServiceRecord * service in services) {
-		if([service matchesUUIDArray:uuidServices]) {
+		if([service matchesUUIDArray:uuidServices]
+           || [service matchesUUIDArray:uuidServicesZik2]) {
 			NSLog(@"Disconnected from %@", device.nameOrAddress);
 			state = PSAskingStateInit;
 			[self updateStatusItem];
