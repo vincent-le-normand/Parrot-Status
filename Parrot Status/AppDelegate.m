@@ -59,6 +59,7 @@ typedef NS_ENUM(NSInteger, PSState) {
 															  @"ShowBatteryPercentage":@NO,
 															  @"ShowBatteryIcon":@YES,
 															  @"HiddenWhenDisconnected":@NO,
+															  @"MapMediaKeys":@NO
 															  }];
 }
 
@@ -69,8 +70,11 @@ typedef NS_ENUM(NSInteger, PSState) {
 	if (loginItems) {
 		[self enableLoginItemWithLoginItemsReference:loginItems forPath:appPath];
 	}
-	
-	
+	if([[NSUserDefaults standardUserDefaults] boolForKey:@"MapMediaKeys"])
+		[self setupMediaKeyMapping];
+}
+
+- (void) setupMediaKeyMapping {
 	[NSTask launchedTaskWithLaunchPath:@"/bin/launchctl" arguments:@[@"unload",@"/System/Library/LaunchAgents/com.apple.rcd.plist"]];
 	self.eventMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:(NSKeyDownMask|NSSystemDefinedMask)  handler:^(NSEvent * event) {
 		int keyCode = (([event data1] & 0xFFFF0000) >> 16);
@@ -112,6 +116,11 @@ typedef NS_ENUM(NSInteger, PSState) {
 	}];
 }
 
+- (void) disableMediaKeyMapping {
+	[NSTask launchedTaskWithLaunchPath:@"/bin/launchctl" arguments:@[@"load",@"/System/Library/LaunchAgents/com.apple.rcd.plist"]];
+	[NSEvent removeMonitor:self.eventMonitor];
+}
+
 - (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender {
 	if([[NSUserDefaults standardUserDefaults] boolForKey:@"HiddenWhenDisconnected"] && state != PSAskingStateConnected) {
 		showUntilDate = CFAbsoluteTimeGetCurrent()+30.;
@@ -145,8 +154,8 @@ typedef NS_ENUM(NSInteger, PSState) {
 	if (loginItems) {
 		[self disableLoginItemWithLoginItemsReference:loginItems forPath:appPath];
 	}
-	[NSTask launchedTaskWithLaunchPath:@"/bin/launchctl" arguments:@[@"load",@"/System/Library/LaunchAgents/com.apple.rcd.plist"]];
-	[NSEvent removeMonitor:self.eventMonitor];
+	if([[NSUserDefaults standardUserDefaults] boolForKey:@"MapMediaKeys"])
+		[self disableMediaKeyMapping];
 }
 
 - (void) updateStatusItem {
@@ -277,6 +286,7 @@ CGEventRef modifiersChanged( CGEventTapProxy proxy, CGEventType type, CGEventRef
 		[[menu addItemWithTitle:NSLocalizedString(@"Auto connection", @"") action:@selector(toggleAutoConnect:) keyEquivalent:@""] setState:autoConnection?NSOnState:NSOffState];
 		[[menu addItemWithTitle:NSLocalizedString(@"Lou Reed mode", @"") action:@selector(toggleLouReed:) keyEquivalent:@""] setState:louReedMode?NSOnState:NSOffState];
 		[[menu addItemWithTitle:NSLocalizedString(@"Concert hall mode", @"") action:@selector(toggleConcertHall:) keyEquivalent:@""] setState:concertHall?NSOnState:NSOffState];
+		[[menu addItemWithTitle:NSLocalizedString(@"Touch control support for all Apps", @"") action:@selector(toggleMediaKeys:) keyEquivalent:@""] setState:[[NSUserDefaults standardUserDefaults] boolForKey:@"MapMediaKeys"]?NSOnState:NSOffState];
 	}
 	else {
 		NSMenuItem * notConnected = [menu addItemWithTitle:NSLocalizedString(@"Not connected",@"") action:NULL keyEquivalent:@""];
@@ -540,6 +550,17 @@ static NSArray * uuidServices = nil;
 - (IBAction)toogleBatteryNotifications:(id)sender {
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	[userDefaults setBool:![userDefaults boolForKey:@"ShowBatteryNotifications"] forKey:@"ShowBatteryNotifications"];
+}
+
+- (void) toggleMediaKeys:(id)sender {
+	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+	[userDefaults setBool:![userDefaults boolForKey:@"MapMediaKeys"] forKey:@"MapMediaKeys"];
+	if([userDefaults boolForKey:@"MapMediaKeys"]) {
+		[self setupMediaKeyMapping];
+	}
+	else {
+		[self disableMediaKeyMapping];
+	}
 }
 
 - (IBAction)toggleNoiseCancellation:(id)sender {
