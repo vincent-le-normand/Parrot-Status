@@ -6,6 +6,15 @@
         <description>Most recent changes with links to updates.</description>
         <language>en</language>
 		<item>
+			<title>Version 0.9.4</title>
+			<sparkle:releaseNotesLink>
+				https://github.com/vincent-le-normand/Parrot-Status/releases/tag/0.9.4
+			</sparkle:releaseNotesLink>
+			<pubDate>Mon, 30 Mar 2015 14:00:00 +0000</pubDate>
+			<enclosure url="https://github.com/vincent-le-normand/Parrot-Status/releases/download/0.9.4/Parrot.Status.zip" sparkle:version="5" sparkle:shortVersionString="0.9.4" sparkle:dsaSignature="MC4CFQCXgKceHMGDRWR6f9IesTivA6ESEQIVAJpxzy7PgV1Avz+lc6H2dDM9RYMN" length="1377749" type="application/octet-stream" />
+			<sparkle:minimumSystemVersion>10.9</sparkle:minimumSystemVersion>
+		</item>
+		<item>
 			<title>Version 0.9.3</title>
 			<sparkle:releaseNotesLink>
 				https://github.com/vincent-le-normand/Parrot-Status/releases/tag/0.9.3
