@@ -12,6 +12,8 @@
 	<dict>
 		<key>3C134A98E1C9FB6AFDB0ABD839CC14A94C3F256A</key>
 		<string>https://github.com/vincent-le-normand/Parrot-Status.git</string>
+		<key>4B770F004D8652AE2D9B8D5B9DF4DB1FCE684E60</key>
+		<string>https://github.com/jguice/mac-bt-headset-fix.git</string>
 		<key>86B1D2467EF5CDCCE524112DDD2EFB231FA28639</key>
 		<string>https://github.com/rsms/lets-move-cocoa.git</string>
 	</dict>
@@ -21,6 +23,8 @@
 	<dict>
 		<key>3C134A98E1C9FB6AFDB0ABD839CC14A94C3F256A</key>
 		<string>../..</string>
+		<key>4B770F004D8652AE2D9B8D5B9DF4DB1FCE684E60</key>
+		<string>../../../mac-bt-headset-fix</string>
 		<key>86B1D2467EF5CDCCE524112DDD2EFB231FA28639</key>
 		<string>../..lets-move-cocoa</string>
 	</dict>
@@ -32,6 +36,14 @@
 	<string>3C134A98E1C9FB6AFDB0ABD839CC14A94C3F256A</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>4B770F004D8652AE2D9B8D5B9DF4DB1FCE684E60</string>
+			<key>IDESourceControlWCCName</key>
+			<string>mac-bt-headset-fix</string>
+		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>

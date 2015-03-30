@@ -19,6 +19,7 @@
 		BF91F5901A03BBF0006634CF /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = BF91F58F1A03BBF0006634CF /* Credits.rtf */; };
 		BF91F5931A03C3A4006634CF /* PFMoveApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF91F5921A03C3A4006634CF /* PFMoveApplication.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		BFC2266D1A03C4AB0068B8BB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFC2266C1A03C4AB0068B8BB /* Security.framework */; };
+		BFE557F81AC95A7A009731A0 /* MediaKey.m in Sources */ = {isa = PBXBuildFile; fileRef = BFE557F71AC95A7A009731A0 /* MediaKey.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +65,8 @@
 		BF91F5921A03C3A4006634CF /* PFMoveApplication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PFMoveApplication.m; path = "lets-move-cocoa/PFMoveApplication.m"; sourceTree = SOURCE_ROOT; };
 		BFC2266C1A03C4AB0068B8BB /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		BFC2266E1A03C4E50068B8BB /* Prefix_header.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Prefix_header.pch; sourceTree = "<group>"; };
+		BFE557F61AC95A7A009731A0 /* MediaKey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MediaKey.h; path = "../../mac-bt-headset-fix/Spotify Bluetooth Headset Listener/MediaKey.h"; sourceTree = "<group>"; };
+		BFE557F71AC95A7A009731A0 /* MediaKey.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MediaKey.m; path = "../../mac-bt-headset-fix/Spotify Bluetooth Headset Listener/MediaKey.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +115,8 @@
 				BF2F69F61A013C0000462846 /* AppDelegate.m */,
 				BF91F5911A03C3A4006634CF /* PFMoveApplication.h */,
 				BF91F5921A03C3A4006634CF /* PFMoveApplication.m */,
+				BFE557F61AC95A7A009731A0 /* MediaKey.h */,
+				BFE557F71AC95A7A009731A0 /* MediaKey.m */,
 				BF2F69FA1A013C0000462846 /* Images.xcassets */,
 				BF2F69FC1A013C0000462846 /* MainMenu.xib */,
 				BF2F69F31A013C0000462846 /* Supporting Files */,
@@ -255,6 +260,7 @@
 			files = (
 				BF2F69F91A013C0000462846 /* main.m in Sources */,
 				BF2F69F71A013C0000462846 /* AppDelegate.m in Sources */,
+				BFE557F81AC95A7A009731A0 /* MediaKey.m in Sources */,
 				BF91F5931A03C3A4006634CF /* PFMoveApplication.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
