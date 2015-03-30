@@ -145,7 +145,8 @@ typedef NS_ENUM(NSInteger, PSState) {
 	NSMenu * myMenu = [[NSMenu alloc] initWithTitle:@"Test"];
 	myMenu.delegate = self;
 	statusItem.menu = myMenu;
-	statusItem.button.appearsDisabled = YES;
+	if([statusItem respondsToSelector:@selector(button)])
+		statusItem.button.appearsDisabled = YES;
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
@@ -171,9 +172,10 @@ typedef NS_ENUM(NSInteger, PSState) {
 			}
 		}
 	}
+	NSImage * image = nil;
 	if([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryIcon"]) {
 		CGFloat imageWidth = (state == PSAskingStateConnected) ? 22 : 16;
-		statusItem.button.image = [NSImage imageWithSize:NSMakeSize(imageWidth, 16) flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
+		image = [NSImage imageWithSize:NSMakeSize(imageWidth, 16) flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
 			[[NSColor colorWithDeviceWhite:0.0 alpha:0.9] set];
 			NSBezierPath  * headset = [NSBezierPath bezierPath];
 			[headset moveToPoint:NSMakePoint(1.5, 4.5)];
@@ -207,31 +209,48 @@ typedef NS_ENUM(NSInteger, PSState) {
 			//		NSRectFill(dstRect);
 			return YES;
 		}];
-		[statusItem.image setTemplate:YES];
+		[image setTemplate:YES];
 	}
 	else {
-		statusItem.image = nil;
+		image = nil;
 	}
+	if([statusItem respondsToSelector:@selector(button)]) {
+		statusItem.button.image = image;
+	}
+	else {
+		statusItem.image = image;
+	}
+	
+	NSString * title = nil;
+	
 	if([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowBatteryPercentage"]) {
 		if( state == PSAskingStateConnected) {
 			if(batteryCharging) {
-				statusItem.button.title = NSLocalizedString(@"Charging", @"");
+				title = NSLocalizedString(@"Charging", @"");
 			}
 			else {
-				statusItem.button.title = [NSString stringWithFormat:NSLocalizedString(@"%i%%", @""),batteryLevel];
+				title = [NSString stringWithFormat:NSLocalizedString(@"%i%%", @""),batteryLevel];
 			}
 		}
 		else {
-			statusItem.button.title = NSLocalizedString(@"-", @"");
+			title = NSLocalizedString(@"-", @"");
 		}
 		statusItem.length = NSVariableStatusItemLength;
 	}
 	else {
-		statusItem.button.title = nil;
+		title = nil;
 		statusItem.length = NSSquareStatusItemLength;
 	}
-	statusItem.button.appearsDisabled = state != PSAskingStateConnected;
-	statusItem.button.imagePosition = NSImageRight;
+	
+	if([statusItem respondsToSelector:@selector(button)]) {
+		title = title;
+		statusItem.button.appearsDisabled = state != PSAskingStateConnected;
+		statusItem.button.imagePosition = NSImageRight;
+	}
+	else {
+		statusItem.title = title;
+		statusItem.enabled = state == PSAskingStateConnected;
+	}
 }
 
 CGEventRef modifiersChanged( CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon ) {
