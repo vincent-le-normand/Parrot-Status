@@ -243,7 +243,7 @@ typedef NS_ENUM(NSInteger, PSState) {
 	}
 	
 	if([statusItem respondsToSelector:@selector(button)]) {
-		title = title;
+		statusItem.title = title;
 		statusItem.button.appearsDisabled = state != PSAskingStateConnected;
 		statusItem.button.imagePosition = NSImageRight;
 	}
