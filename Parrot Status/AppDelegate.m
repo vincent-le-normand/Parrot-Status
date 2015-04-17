@@ -41,6 +41,7 @@ typedef NS_ENUM(NSInteger, PSState) {
 	BOOL batteryCharging;
 	NSString * version;
 	NSString * name;
+    BOOL isVersion2;
 	BOOL autoConnection;
 	BOOL ancPhoneMode;
 	BOOL noiseCancel;
@@ -370,6 +371,7 @@ static NSArray * uuidServicesZik2 = nil;
 		if([service matchesUUIDArray:uuidServices]
            || [service matchesUUIDArray:uuidServicesZik2]) {
 			IOReturn res = [service getRFCOMMChannelID:&channelId];
+            isVersion2 = [service matchesUUIDArray:uuidServicesZik2];
 			if(res != kIOReturnSuccess)
 			{
 				NSLog(@"Failed to connect to %@", device.nameOrAddress);
@@ -600,7 +602,12 @@ static NSArray * uuidServicesZik2 = nil;
 }
 
 - (IBAction)toggleNoiseCancellation:(id)sender {
-	[self sendRequest:[NSString stringWithFormat:@"SET /api/audio/noise_cancellation/enabled/set?arg=%@",noiseCancel?@"false":@"true"]];
+    if(isVersion2) {
+        [self sendRequest:[NSString stringWithFormat:@"SET /api/audio/noise_control/set?arg=%@&value=2",noiseCancel?@"off":@"anc"]];
+    }
+    else {
+        [self sendRequest:[NSString stringWithFormat:@"SET /api/audio/noise_cancellation/enabled/set?arg=%@",noiseCancel?@"false":@"true"]];
+    }
 	[self sendRequest:@"GET /api/audio/noise_cancellation/enabled/get"];
 }
 
